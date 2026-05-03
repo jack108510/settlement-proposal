@@ -1,242 +1,361 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SettleSmart — Settlement Proposal Manager</title>
+<meta name="theme-color" content="#1e293b">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--blue:#2563eb;--blue-light:#60a5fa;--blue-dim:#eff6ff;--blue-border:#dbeafe;--green:#16a34a;--green-dim:#f0fdf4;--red:#dc2626;--red-dim:#fef2f2;--navy:#1e3a5f;--muted:#64748b;--bg:#f4f8ff;--white:#fff;--border:#e2e8f0}
-body{background:var(--bg);color:var(--navy);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;min-height:100vh}
-.app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+:root{--blue:#2563eb;--navy:#0f172a;--surface:#1e293b;--surface2:#334155;--border:#475569;--text:#f1f5f9;--muted:#94a3b8;--dim:#64748b;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--radius:12px}
+body{background:var(--navy);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;min-height:100vh}
 
-/* Header */
-.header{background:var(--white);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-.header h1{font-size:1.1rem;font-weight:800}.header h1 span{color:var(--blue)}
-.header-actions{display:flex;gap:8px}
-.btn-sm{padding:8px 14px;border-radius:8px;font-size:.8rem;font-weight:700;border:none;cursor:pointer;transition:all .15s}
-.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#1d4ed8}
-.btn-outline{background:var(--white);color:var(--blue);border:1px solid var(--blue-border)}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+nav h1{font-size:1rem;font-weight:800}nav h1 span{color:var(--blue)}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{color:var(--muted);font-size:.78rem;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;border:none;background:none;transition:all .15s}
+.nav-tab:hover{color:var(--text);background:var(--surface2)}
+.nav-tab.active{color:var(--blue);background:var(--surface2)}
 
-/* Summary Bar */
-.summary{background:var(--white);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;justify-content:space-between}
-.summary-item{text-align:center;flex:1}
-.summary-val{font-size:1.2rem;font-weight:900}
-.summary-val.positive{color:var(--green)}.summary-val.negative{color:var(--red)}.summary-val.total{color:var(--blue)}
-.summary-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.wrap{max-width:600px;margin:0 auto;padding:20px}
+.page{display:none}.page.active{display:block}
 
-/* Parties */
-.parties{display:flex;border-bottom:1px solid var(--border)}
-.party-tab{flex:1;padding:14px;text-align:center;font-size:.85rem;font-weight:700;cursor:pointer;border:none;background:var(--white);color:var(--muted);transition:all .15s}
-.party-tab.active{color:var(--blue);border-bottom:3px solid var(--blue);background:var(--blue-dim)}
+/* Party selector */
+.party-bar{display:flex;gap:8px;margin-bottom:20px}
+.party-btn{flex:1;padding:12px;border-radius:var(--radius);border:2px solid var(--border);background:var(--surface);color:var(--text);font-size:.85rem;font-weight:700;cursor:pointer;text-align:center;transition:all .15s}
+.party-btn.active{border-color:var(--blue);background:rgba(37,99,235,.1);color:var(--blue)}
+.party-btn .emoji{font-size:20px;display:block;margin-bottom:4px}
 
-/* Items List */
-.items{flex:1;padding:12px 16px;overflow-y:auto}
-.item-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .15s}
-.item-card:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(37,99,235,.08)}
-.item-card:active{transform:scale(.98)}
-.item-row{display:flex;justify-content:space-between;align-items:center}
-.item-name{font-size:.9rem;font-weight:700;color:var(--navy)}
-.item-type{font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em}
-.item-type.asset{background:var(--green-dim);color:var(--green)}
-.item-type.liability{background:var(--red-dim);color:var(--red)}
-.item-val{font-size:1rem;font-weight:900;color:var(--navy)}
-.item-meta{font-size:.75rem;color:var(--muted);margin-top:4px}
+/* Proposal card */
+.proposal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.proposal-head{padding:16px;display:flex;justify-content:space-between;align-items:flex-start}
+.proposal-title{font-size:.92rem;font-weight:800}
+.proposal-date{font-size:.68rem;color:var(--dim);margin-top:2px}
+.status{font-size:.62rem;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+.status-pending{background:rgba(245,158,11,.1);color:var(--amber)}
+.status-approved{background:rgba(34,197,94,.1);color:var(--green)}
+.status-rejected{background:rgba(239,68,68,.1);color:var(--red)}
+.status-counter{background:rgba(37,99,235,.1);color:var(--blue)}
 
-/* Add Button */
-.add-btn{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:28px;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.3);transition:all .2s;z-index:10}
-.add-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(37,99,235,.4)}
+.proposal-body{padding:0 16px 16px}
+.proposal-items{display:grid;gap:6px;margin-bottom:12px}
+.item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--navy);border-radius:8px}
+.item-label{font-size:.8rem;color:var(--muted)}
+.item-value{font-size:.85rem;font-weight:700}
+.item-value.party-a{color:var(--blue)}.item-value.party-b{color:var(--amber)}
 
-/* Modal */
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:flex-end;justify-content:center}
-.modal-overlay.sh{display:flex}
-.modal{background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:24px;max-height:85vh;overflow-y:auto}
-.modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 16px}
-.modal h2{font-size:1.2rem;font-weight:900;margin-bottom:16px}
-.form-group{margin-bottom:14px}
-.form-label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:5px}
-.form-input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:.9rem;outline:none;font-family:inherit;transition:border-color .15s}
-.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn-row{display:flex;gap:10px;margin-top:20px}
-.btn-row .btn-sm{flex:1;padding:12px;text-align:center}
+.proposal-total{display:flex;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:12px}
+.total-label{font-size:.78rem;font-weight:700;color:var(--muted)}
+.total-value{font-size:1rem;font-weight:900}
 
-/* Detail View */
-.detail{padding:16px}
-.detail-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-.detail-title{font-size:1.3rem;font-weight:900}
-.detail-value{font-size:1.5rem;font-weight:900;margin-bottom:4px}
-.detail-field{margin-bottom:14px}
-.detail-field label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px}
-.detail-field p{font-size:.9rem;color:var(--navy);line-height:1.5}
+.proposal-notes{font-size:.78rem;color:var(--muted);line-height:1.5;padding:10px 12px;background:var(--navy);border-radius:8px;margin-bottom:12px}
 
-/* Empty State */
-.empty{text-align:center;padding:48px 24px;color:var(--muted)}
-.empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
-.empty h3{font-size:1rem;font-weight:700;margin-bottom:6px;color:var(--navy)}
-.empty p{font-size:.85rem;line-height:1.5}
+/* Response area */
+.response-area{padding:0 16px 16px}
+.response-text{width:100%;padding:10px 12px;background:var(--navy);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.82rem;font-family:inherit;resize:vertical;min-height:60px;margin-bottom:8px}
+.response-text:focus{border-color:var(--blue);outline:none}
+.response-btns{display:flex;gap:8px}
+.rbtn{flex:1;padding:10px;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s}
+.rbtn-approve{background:rgba(34,197,94,.15);color:var(--green)}.rbtn-approve:hover{background:rgba(34,197,94,.25)}
+.rbtn-reject{background:rgba(239,68,68,.15);color:var(--red)}.rbtn-reject:hover{background:rgba(239,68,68,.25)}
+.rbtn-counter{background:rgba(37,99,235,.15);color:var(--blue)}.rbtn-counter:hover{background:rgba(37,99,235,.25)}
 
-@media(min-width:481px){.app{border-left:1px solid var(--border);border-right:1px solid var(--border)}}
+/* Rejection reason */
+.rejection{padding:10px 14px;margin:0 16px 16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:8px}
+.rejection-label{font-size:.65rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.rejection-text{font-size:.8rem;color:var(--muted);line-height:1.5}
+
+/* Counter offer */
+.counter{padding:10px 14px;margin:0 16px 16px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.15);border-radius:8px}
+.counter-label{font-size:.65rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+
+/* Form */
+.form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.form h3{font-size:.95rem;font-weight:800;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:4px}
+.field input,.field textarea,.field select{width:100%;padding:9px 12px;background:var(--navy);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.84rem;font-family:inherit;outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--blue)}
+.add-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:none;border:1px dashed var(--border);border-radius:8px;color:var(--blue);font-size:.78rem;font-weight:700;cursor:pointer;margin-bottom:12px}
+.add-btn:hover{background:var(--surface2)}
+.submit-btn{width:100%;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer}
+.submit-btn:hover{background:#1d4ed8}
+
+.items-list{margin-bottom:12px}
+.item-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.item-row input{flex:1}
+.item-row select{width:80px}
+.remove-item{width:32px;height:32px;border-radius:6px;border:none;background:rgba(239,68,68,.1);color:var(--red);cursor:pointer;font-size:16px;flex-shrink:0}
+
+.section-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:10px}
+.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.metric .val{font-size:1.2rem;font-weight:900;color:var(--blue)}
+.metric .lbl{font-size:.62rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.metric.green .val{color:var(--green)}.metric.red .val{color:var(--red)}.metric.amber .val{color:var(--amber)}
+
+@media(max-width:400px){.nav-tab{padding:5px 8px;font-size:.72rem}.metrics{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<div class="app" id="app"></div>
+
+<nav>
+  <h1>Settle<span>Smart</span></h1>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="go('proposals',this)">Proposals</button>
+    <button class="nav-tab" onclick="go('new',this)">New Proposal</button>
+    <button class="nav-tab" onclick="go('summary',this)">Summary</button>
+  </div>
+</nav>
+
+<div class="wrap page active" id="pg-proposals">
+  <div class="section-label">Viewing As</div>
+  <div class="party-bar">
+    <button class="party-btn active" onclick="setParty('a',this)"><span class="emoji">🔵</span>Party A</button>
+    <button class="party-btn" onclick="setParty('b',this)"><span class="emoji">🟡</span>Party B</button>
+  </div>
+  <div id="proposalList"></div>
+</div>
+
+<div class="wrap page" id="pg-new">
+  <div class="form">
+    <h3>New Proposal</h3>
+    <div class="field"><label>From</label><select id="f-from"><option value="a">Party A</option><option value="b">Party B</option></select></div>
+    <div class="field"><label>Title</label><input id="f-title" placeholder="e.g. Asset division proposal #1"/></div>
+    <div class="field"><label>Notes</label><textarea id="f-notes" placeholder="Additional context or reasoning..."></textarea></div>
+    <div class="section-label" style="margin-top:16px">Items</div>
+    <div class="items-list" id="itemsList">
+      <div class="item-row"><input placeholder="Item (e.g. Family home)" class="i-name"/><input placeholder="$" class="i-val" type="number"/><select class="i-party"><option value="a">Party A</option><option value="b">Party B</option><option value="split">Split</option></select><button class="remove-item" onclick="this.parentElement.remove()">×</button></div>
+    </div>
+    <button class="add-btn" onclick="addItem()">+ Add Item</button>
+    <div class="field"><label>Supporting Details</label><textarea id="f-details" placeholder="Why this proposal is fair, market values, legal precedents..."></textarea></div>
+    <button class="submit-btn" onclick="submitProposal()">Submit Proposal</button>
+  </div>
+</div>
+
+<div class="wrap page" id="pg-summary">
+  <div class="metrics" id="summaryMetrics"></div>
+  <div class="section-label">Settlement Breakdown</div>
+  <div id="summaryBreakdown"></div>
+</div>
 
 <script>
-const SAVE_KEY='settlesmart_data';
-let state={parties:['Party A','Party B'],items:[],currentParty:0,view:'list'};
+let currentParty = 'a';
 
-function load(){const d=localStorage.getItem(SAVE_KEY);if(d)state=JSON.parse(d)}
-function save(){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
+const DATA = {
+  proposals: [
+    {
+      id: 1, from: 'a', title: 'Initial Asset Division',
+      date: '2026-05-01', status: 'counter',
+      items: [
+        {name:'Family home (123 Oak St)',value:485000,to:'a'},
+        {name:'2019 Honda CR-V',value:24000,to:'a'},
+        {name:'Joint savings account',value:42000,to:'split'},
+        {name:'Jack\'s RRSP',value:67000,to:'a'},
+        {name:'Jack\'s pension (present value)',value:89000,to:'a'},
+      ],
+      notes: 'Proposing to keep the home and vehicle in exchange for waiving claim to Sarah\'s business assets. Pension and RRSP earned during marriage subject to division.',
+      details: 'Home purchased 2018 for $420K, current assessed value $485K. Mortgage remaining $285K. Vehicle purchased 2019, Kelly Blue Book $24K.',
+      response: 'counter',
+      responseText: 'The home equity split needs adjustment. I propose 60/40 in my favor given my higher contribution to the down payment. Also requesting full RRSP offset against pension.',
+      counterItems: [
+        {name:'Family home equity (net $200K)',value:120000,to:'b'},
+        {name:'Family home equity (net $200K)',value:80000,to:'a'},
+        {name:'2019 Honda CR-V',value:24000,to:'a'},
+        {name:'Joint savings',value:21000,to:'a'},
+        {name:'Joint savings',value:21000,to:'b'},
+        {name:'RRSP offset',value:67000,to:'b'},
+        {name:'Pension offset',value:44500,to:'b'},
+      ]
+    },
+    {
+      id: 2, from: 'b', title: 'Business Valuation Response',
+      date: '2026-05-02', status: 'pending',
+      items: [
+        {name:'Sarah\'s Bakery (goodwill + equipment)',value:95000,to:'b'},
+        {name:'Bakery equipment replacement value',value:32000,to:'b'},
+        {name:'Business loan outstanding',value:18000,to:'split'},
+      ],
+      notes: 'The bakery was started 2 years before marriage. Only the growth during marriage should be divisible. Submitting professional valuation report.',
+      details: 'Business started 2016, married 2018. Valuation at marriage date: $45K. Current valuation: $95K. Only $50K growth subject to division per family law.',
+      response: null,
+      responseText: null
+    },
+    {
+      id: 3, from: 'a', title: 'Parenting Schedule Proposal',
+      date: '2026-05-02', status: 'approved',
+      items: [
+        {name:'Primary residence with Party A',value:0,to:'a'},
+        {name:'Weekends (Fri 5pm - Sun 7pm)',value:0,to:'b'},
+        {name:'Wednesday overnight',value:0,to:'b'},
+        {name:'Alternating holidays',value:0,to:'split'},
+        {name:'Shared decision-making (education, health)',value:0,to:'split'},
+      ],
+      notes: 'Proposing week-about schedule that maintains school stability for the children while maximizing both parents\' time.',
+      details: 'Children ages 8 and 11. Both attend Riverside Elementary. Party A lives 2km from school, Party B lives 8km.',
+      response: 'approved',
+      responseText: 'This schedule works well for the kids. I agree to the Wednesday overnight and alternating holidays. Let\'s formalize this.'
+    }
+  ]
+};
 
-function $(id){return document.getElementById(id)}
-function fmt(n){return new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD',minimumFractionDigits:0,maximumFractionDigits:0}).format(n)}
-
-function render(){
-  const app=$('app');
-  if(state.view==='list')renderList(app);
-  else if(state.view==='detail')renderDetail(app);
-  else if(state.view==='add')renderAdd(app);
+function go(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='proposals')renderProposals();
+  if(id==='summary')renderSummary();
 }
 
-function renderList(app){
-  const party=state.parties[state.currentParty];
-  const partyItems=state.items.filter(i=>i.party===state.currentParty);
-  const assets=partyItems.filter(i=>i.type==='asset');
-  const liabilities=partyItems.filter(i=>i.type==='liability');
-  const totalAssets=assets.reduce((s,i)=>s+i.value,0);
-  const totalLiab=liabilities.reduce((s,i)=>s+i.value,0);
-  const net=totalAssets-totalLiab;
-
-  // Overall totals
-  const allAssets=state.items.filter(i=>i.type==='asset').reduce((s,i)=>s+i.value,0);
-  const allLiab=state.items.filter(i=>i.type==='liability').reduce((s,i)=>s+i.value,0);
-  const diff=allAssets-allLiab;
-
-  app.innerHTML=`
-    <div class="header">
-      <h1>Settle<span>Smart</span></h1>
-      <div class="header-actions">
-        <button class="btn-sm btn-outline" onclick="exportProposal()">Export</button>
-        <button class="btn-sm btn-primary" onclick="resetAll()">New</button>
-      </div>
-    </div>
-    <div class="summary">
-      <div class="summary-item"><div class="summary-val positive">${fmt(allAssets)}</div><div class="summary-lbl">Total Assets</div></div>
-      <div class="summary-item"><div class="summary-val negative">${fmt(allLiab)}</div><div class="summary-lbl">Total Liabilities</div></div>
-      <div class="summary-item"><div class="summary-val total">${fmt(diff)}</div><div class="summary-lbl">Net Difference</div></div>
-    </div>
-    <div class="parties">
-      ${state.parties.map((p,i)=>`<button class="party-tab ${i===state.currentParty?'active':''}" onclick="switchParty(${i})">${p}<br/><small style="font-weight:400;font-size:.7rem">${fmt(i===state.currentParty?net:(state.items.filter(x=>x.party===i&&x.type==='asset').reduce((s,x)=>s+x.value,0)-state.items.filter(x=>x.party===i&&x.type==='liability').reduce((s,x)=>s+x.value,0)))}</small></button>`).join('')}
-    </div>
-    <div class="items">
-      ${partyItems.length===0?`<div class="empty"><div class="empty-icon">📋</div><h3>No items yet</h3><p>Add assets and liabilities for ${party}</p></div>`:''}
-      ${assets.length?`<div style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;margin-top:4px">Assets (${fmt(totalAssets)})</div>`:''}
-      ${assets.map((item,i)=>`<div class="item-card" onclick="viewDetail(${state.items.indexOf(item)})"><div class="item-row"><div><div class="item-name">${item.name}</div><div class="item-meta">${item.category||'General'}</div></div><div style="text-align:right"><div class="item-val">${fmt(item.value)}</div><span class="item-type asset">Asset</span></div></div></div>`).join('')}
-      ${liabilities.length?`<div style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px">Liabilities (${fmt(totalLiab)})</div>`:''}
-      ${liabilities.map((item,i)=>`<div class="item-card" onclick="viewDetail(${state.items.indexOf(item)})"><div class="item-row"><div><div class="item-name">${item.name}</div><div class="item-meta">${item.category||'General'}</div></div><div style="text-align:right"><div class="item-val">-${fmt(item.value)}</div><span class="item-type liability">Liability</span></div></div></div>`).join('')}
-    </div>
-    <button class="add-btn" onclick="showAdd()">+</button>
-  `;
+function setParty(p,el){
+  currentParty=p;
+  document.querySelectorAll('.party-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderProposals();
 }
 
-function renderDetail(app){
-  const item=state.items[state.detailIdx];
-  if(!item){state.view='list';render();return}
-  app.innerHTML=`
-    <div class="header">
-      <button class="btn-sm btn-outline" onclick="state.view='list';render()">← Back</button>
-      <h1>${item.name}</h1>
-      <button class="btn-sm btn-outline" style="color:var(--red)" onclick="deleteItem(${state.detailIdx})">Delete</button>
-    </div>
-    <div class="detail">
-      <div class="detail-header">
-        <div>
-          <div class="detail-value ${item.type==='asset'?'positive':'negative'}">${item.type==='asset'?'':'−'}${fmt(item.value)}</div>
-          <span class="item-type ${item.type}">${item.type}</span>
-        </div>
-      </div>
-      <div class="detail-field"><label>Category</label><p>${item.category||'General'}</p></div>
-      <div class="detail-field"><label>Assigned To</label><p>${state.parties[item.party]}</p></div>
-      ${item.description?`<div class="detail-field"><label>Notes</label><p>${item.description}</p></div>`:''}
-      ${item.date?`<div class="detail-field"><label>Date Added</label><p>${item.date}</p></div>`:''}
-    </div>
-  `;
+function fmt(n){return n===0?'—':'$'+n.toLocaleString()}
+
+function renderItems(items){
+  return items.map(i=>`<div class="item"><span class="item-label">${i.name}</span><span class="item-value ${i.to==='a'?'party-a':i.to==='b'?'party-b':''}">${fmt(i.value)} → ${i.to==='a'?'Party A':i.to==='b'?'Party B':'Split'}</span></div>`).join('');
 }
 
-function renderAdd(app){
-  app.innerHTML=`
-    <div class="header">
-      <button class="btn-sm btn-outline" onclick="state.view='list';render()">Cancel</button>
-      <h1>Add Item</h1>
-      <button class="btn-sm btn-primary" onclick="saveItem()">Save</button>
-    </div>
-    <div style="padding:16px">
-      <div class="form-group"><label class="form-label">Item Name</label><input class="form-input" id="add-name" placeholder="e.g. Family Home"/></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Value ($)</label><input class="form-input" id="add-value" type="number" placeholder="500000"/></div>
-        <div class="form-group"><label class="form-label">Type</label><select class="form-input" id="add-type"><option value="asset">Asset</option><option value="liability">Liability</option></select></div>
+function renderProposals(){
+  const el=document.getElementById('proposalList');
+  el.innerHTML=DATA.proposals.map(p=>{
+    const isRecipient=(p.from!==currentParty);
+    const totalA=p.items.filter(i=>i.to==='a').reduce((s,i)=>s+i.value,0);
+    const totalB=p.items.filter(i=>i.to==='b').reduce((s,i)=>s+i.value,0);
+    
+    let html=`<div class="proposal">
+      <div class="proposal-head">
+        <div><div class="proposal-title">${p.title}</div><div class="proposal-date">From ${p.from==='a'?'Party A':'Party B'} · ${p.date}</div></div>
+        <span class="status status-${p.status}">${p.status}</span>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Category</label><select class="form-input" id="add-cat"><option value="Real Estate">Real Estate</option><option value="Vehicle">Vehicle</option><option value="Investment">Investment</option><option value="Bank Account">Bank Account</option><option value="Pension/RRSP">Pension/RRSP</option><option value="Business">Business</option><option value="Debt">Debt</option><option value="Tax Liability">Tax Liability</option><option value="Personal">Personal</option><option value="Other">Other</option></select></div>
-        <div class="form-group"><label class="form-label">Assigned To</label><select class="form-input" id="add-party">${state.parties.map((p,i)=>`<option value="${i}" ${i===state.currentParty?'selected':''}>${p}</option>`).join('')}</select></div>
-      </div>
-      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="add-desc" rows="3" placeholder="Optional details"></textarea></div>
-    </div>
-  `;
+      <div class="proposal-body">
+        <div class="proposal-items">${renderItems(p.items)}</div>
+        <div class="proposal-total"><span class="total-label">Party A total</span><span class="total-value" style="color:var(--blue)">${fmt(totalA)}</span></div>
+        <div class="proposal-total"><span class="total-label">Party B total</span><span class="total-value" style="color:var(--amber)">${fmt(totalB)}</span></div>
+        ${p.notes?`<div class="proposal-notes">📝 ${p.notes}</div>`:''}
+        ${p.details?`<div class="proposal-notes">📋 ${p.details}</div>`:''}`;
+    
+    // Show rejection/counter reason
+    if(p.response==='rejected'&&p.responseText){
+      html+=`<div class="rejection"><div class="rejection-label">Rejected — Reason</div><div class="rejection-text">${p.responseText}</div></div>`;
+    }
+    if(p.response==='counter'&&p.responseText){
+      html+=`<div class="counter"><div class="counter-label">Counter-Offer from ${p.from==='a'?'Party B':'Party A'}</div><div class="rejection-text">${p.responseText}</div>
+      ${p.counterItems?`<div class="proposal-items" style="margin-top:10px">${renderItems(p.counterItems)}</div>`:''}</div>`;
+    }
+    if(p.response==='approved'&&p.responseText){
+      html+=`<div class="counter" style="background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.15)"><div class="counter-label" style="color:var(--green)">Approved</div><div class="rejection-text">${p.responseText}</div></div>`;
+    }
+    
+    // Response buttons for recipient
+    if(isRecipient&&p.status==='pending'){
+      html+=`<div class="response-area">
+        <textarea class="response-text" id="resp-${p.id}" placeholder="Your thoughts... (required for rejection)"></textarea>
+        <div class="response-btns">
+          <button class="rbtn rbtn-approve" onclick="respond(${p.id},'approved')">✓ Approve</button>
+          <button class="rbtn rbtn-reject" onclick="respond(${p.id},'rejected')">✕ Reject</button>
+          <button class="rbtn rbtn-counter" onclick="respond(${p.id},'counter')">↔ Counter</button>
+        </div></div>`;
+    }
+    
+    html+=`</div></div>`;
+    return html;
+  }).join('');
 }
 
-function switchParty(i){state.currentParty=i;render()}
-function showAdd(){state.view='add';render()}
-function viewDetail(i){state.detailIdx=i;state.view='detail';render()}
+function respond(id,action){
+  const text=document.getElementById('resp-'+id).value.trim();
+  if(action==='rejected'&&!text){alert('Please explain why you\'re rejecting this proposal.');return}
+  const p=DATA.proposals.find(x=>x.id===id);
+  p.response=action;
+  p.responseText=text||null;
+  p.status=action;
+  renderProposals();
+}
 
-function saveItem(){
-  const name=$('add-name').value.trim();
-  const value=parseFloat($('add-value').value);
-  if(!name||isNaN(value)){alert('Please fill in name and value');return}
-  state.items.push({
-    name,value:Math.abs(value),
-    type:$('add-type').value,
-    category:$('add-cat').value,
-    party:parseInt($('add-party').value),
-    description:$('add-desc').value.trim(),
-    date:new Date().toLocaleDateString('en-CA')
+function addItem(){
+  const list=document.getElementById('itemsList');
+  const row=document.createElement('div');
+  row.className='item-row';
+  row.innerHTML='<input placeholder="Item" class="i-name"/><input placeholder="$" class="i-val" type="number"/><select class="i-party"><option value="a">Party A</option><option value="b">Party B</option><option value="split">Split</option></select><button class="remove-item" onclick="this.parentElement.remove()">×</button>';
+  list.appendChild(row);
+}
+
+function submitProposal(){
+  const from=document.getElementById('f-from').value;
+  const title=document.getElementById('f-title').value.trim();
+  const notes=document.getElementById('f-notes').value.trim();
+  const details=document.getElementById('f-details').value.trim();
+  if(!title){alert('Add a title');return}
+  
+  const rows=document.querySelectorAll('#itemsList .item-row');
+  const items=[];
+  rows.forEach(r=>{
+    const name=r.querySelector('.i-name').value.trim();
+    const val=parseFloat(r.querySelector('.i-val').value)||0;
+    const to=r.querySelector('.i-party').value;
+    if(name)items.push({name,value:val,to});
   });
-  save();state.view='list';render();
-}
-
-function deleteItem(i){
-  if(confirm('Delete this item?')){
-    state.items.splice(i,1);
-    save();state.view='list';render();
-  }
-}
-
-function resetAll(){
-  if(confirm('Clear all items and start fresh?')){
-    state={parties:['Party A','Party B'],items:[],currentParty:0,view:'list'};
-    save();render();
-  }
-}
-
-function exportProposal(){
-  let text='SETTLEMENT PROPOSAL\n'+'='.repeat(40)+'\n\n';
-  state.parties.forEach((party,pi)=>{
-    const items=state.items.filter(i=>i.party===pi);
-    const assets=items.filter(i=>i.type==='asset');
-    const liab=items.filter(i=>i.type==='liability');
-    const totalA=assets.reduce((s,i)=>s+i.value,0);
-    const totalL=liab.reduce((s,i)=>s+i.value,0);
-    text+=`${party.toUpperCase()}\n${'-'.repeat(30)}\n`;
-    if(assets.length){text+='ASSETS:\n';assets.forEach(a=>text+=`  ${a.name}: ${fmt(a.value)} (${a.category})\n`);text+=`  Total Assets: ${fmt(totalA)}\n\n`}
-    if(liab.length){text+='LIABILITIES:\n';liab.forEach(l=>text+=`  ${l.name}: ${fmt(l.value)} (${l.category})\n`);text+=`  Total Liabilities: ${fmt(totalL)}\n\n`}
-    text+=`NET: ${fmt(totalA-totalL)}\n\n`;
+  if(!items.length){alert('Add at least one item');return}
+  
+  DATA.proposals.unshift({
+    id:Date.now(),from,title,date:new Date().toISOString().split('T')[0],
+    status:'pending',items,notes,details:details||null,
+    response:null,responseText:null
   });
-  const blob=new Blob([text],{type:'text/plain'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='settlement-proposal.txt';a.click();
+  
+  document.getElementById('f-title').value='';
+  document.getElementById('f-notes').value='';
+  document.getElementById('f-details').value='';
+  
+  go('proposals',document.querySelector('.nav-tab'));
 }
 
-load();render();
+function renderSummary(){
+  const all=DATA.proposals;
+  const approved=all.filter(p=>p.status==='approved');
+  const pending=all.filter(p=>p.status==='pending');
+  const countered=all.filter(p=>p.status==='counter');
+  
+  // Calculate totals from approved items
+  let totalA=0,totalB=0;
+  approved.forEach(p=>{
+    p.items.forEach(i=>{
+      if(i.to==='a')totalA+=i.value;
+      if(i.to==='b')totalB+=i.value;
+    });
+  });
+  
+  document.getElementById('summaryMetrics').innerHTML=`
+    <div class="metric green"><div class="val">${approved.length}</div><div class="lbl">Approved</div></div>
+    <div class="metric amber"><div class="val">${pending.length}</div><div class="lbl">Pending</div></div>
+    <div class="metric"><div class="val">${countered.length}</div><div class="lbl">Countered</div></div>`;
+  
+  const el=document.getElementById('summaryBreakdown');
+  if(!approved.length&&!pending.length){
+    el.innerHTML='<div style="text-align:center;color:var(--dim);padding:32px">No proposals yet</div>';
+    return;
+  }
+  
+  // Show all items across all proposals
+  el.innerHTML=all.map(p=>{
+    const totalAp=p.items.filter(i=>i.to==='a').reduce((s,i)=>s+i.value,0);
+    const totalBp=p.items.filter(i=>i.to==='b').reduce((s,i)=>s+i.value,0);
+    return `<div class="proposal">
+      <div class="proposal-head"><div><div class="proposal-title">${p.title}</div><div class="proposal-date">${p.from==='a'?'Party A':'Party B'} · ${p.date}</div></div><span class="status status-${p.status}">${p.status}</span></div>
+      <div class="proposal-body">
+        <div class="proposal-total"><span class="total-label">Party A</span><span class="total-value" style="color:var(--blue)">${fmt(totalAp)}</span></div>
+        <div class="proposal-total"><span class="total-label">Party B</span><span class="total-value" style="color:var(--amber)">${fmt(totalBp)}</span></div>
+      </div></div>`;
+  }).join('');
+}
+
+renderProposals();
 </script>
 </body>
 </html>
